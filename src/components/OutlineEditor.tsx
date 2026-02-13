@@ -86,6 +86,7 @@ interface OutlineNodeItemProps {
   mode: string;
   focusedNodeId: string | null;
   selectingGotoTarget: string | null;
+  jumpLabel?: string;
   onFocusNode: (id: string | null) => void;
   onSelectAsGotoTarget: (targetId: string) => void;
   onStartGotoSelection: (gotoNodeId: string) => void;
@@ -99,6 +100,7 @@ function OutlineNodeItem({
   mode, 
   focusedNodeId, 
   selectingGotoTarget,
+  jumpLabel,
   onFocusNode,
   onSelectAsGotoTarget,
   onStartGotoSelection,
@@ -194,6 +196,11 @@ function OutlineNodeItem({
         onContextMenu={handleContextMenu}
       >
         <div className="relative">
+          {jumpLabel && (
+            <div className="absolute -left-6 top-1/2 -translate-y-1/2 min-w-[20px] h-5 bg-yellow-400 text-slate-900 text-xs font-bold rounded flex items-center justify-center px-1 shadow-sm z-10 border border-yellow-500">
+              {jumpLabel}
+            </div>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -268,6 +275,7 @@ function OutlineNodeItem({
           mode={mode}
           focusedNodeId={focusedNodeId}
           selectingGotoTarget={selectingGotoTarget}
+          jumpLabel={jumpLabel}
           onFocusNode={onFocusNode}
           onSelectAsGotoTarget={onSelectAsGotoTarget}
           onStartGotoSelection={onStartGotoSelection}
@@ -283,17 +291,102 @@ export function OutlineEditor() {
   const { nodes, findNodeById, updateNode, addSibling, addChild, deleteNode, toggleComment } = useOutline();
   const { mode, appContext } = useKeybindings();
   const [commandPrefix, setCommandPrefix] = useState<'ctrl-x' | null>(null);
+  const [exCommand, setExCommand] = useState<string>('');
+  const [showExCommand, setShowExCommand] = useState<boolean>(false);
+  const [jumpLabels, setJumpLabels] = useState<Record<string, string>>({});
   const commandTimeoutRef = useRef<number | null>(null);
   const appContextRef = useRef(appContext);
+
+  // Generate jump labels when selectingGotoTarget becomes active
+  useEffect(() => {
+    if (!appContext.selectingGotoTarget) {
+      setJumpLabels({});
+      return;
+    }
+
+    const labels: Record<string, string> = {};
+    const chars = 'abcdefghijklmnopqrstuvwxyz';
+    let charIndex = 0;
+
+    const traverse = (nodeList: OutlineNode[], selectingId: string, isDescendantOfSelecting: boolean) => {
+      for (const node of nodeList) {
+        const isSelecting = node.id === selectingId;
+        const isDescendant = isDescendantOfSelecting || isSelecting;
+
+        if (!isSelecting && !isDescendantOfSelecting) {
+          // Assign label
+          if (charIndex < chars.length) {
+            labels[node.id] = chars[charIndex];
+            charIndex++;
+          } else {
+            // fallback for many nodes: use double letters aa, ab, ac...
+            const first = chars[Math.floor((charIndex - chars.length) / chars.length)];
+            const second = chars[(charIndex - chars.length) % chars.length];
+            labels[node.id] = first + second;
+            charIndex++;
+          }
+        }
+
+        traverse(node.children, selectingId, isDescendant);
+      }
+    };
+
+    traverse(nodes, appContext.selectingGotoTarget, false);
+    setJumpLabels(labels);
+  }, [appContext.selectingGotoTarget, nodes]);
 
   useEffect(() => {
     appContextRef.current = appContext;
   }, [appContext]);
 
+  const jumpLabelsRef = useRef(jumpLabels);
+  useEffect(() => {
+    jumpLabelsRef.current = jumpLabels;
+  }, [jumpLabels]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Handle Ex-Command Input
+      if (showExCommand) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowExCommand(false);
+          setExCommand('');
+        }
+        // Let the input handle its own keys
+        return;
+      }
+      
+      // Handle Jump Label Selection
+      if (appContextRef.current.selectingGotoTarget) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          appContextRef.current.cancelGotoTargetSelection();
+          return;
+        }
+
+        // Check if key matches a jump label
+        const targetId = Object.entries(jumpLabelsRef.current).find(([_, label]) => label === e.key)?.[0];
+        if (targetId) {
+          e.preventDefault();
+          e.stopPropagation();
+          appContextRef.current.confirmGotoTarget(targetId);
+          return;
+        }
+      }
+
       // Only active in outline-normal mode
       if (mode !== 'outline-normal') return;
+
+      // Start Ex-Command
+      if (!commandPrefix && !showExCommand && e.key === ':') {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowExCommand(true);
+        return;
+      }
 
       // Check for Ctrl-X prefix activation
       if (!commandPrefix && e.ctrlKey && e.key === 'x') {
@@ -373,8 +466,8 @@ export function OutlineEditor() {
       window.removeEventListener('keydown', handleKeyDown, true);
       if (commandTimeoutRef.current) clearTimeout(commandTimeoutRef.current);
     };
-  }, [mode, commandPrefix, updateNode]);
-  
+  }, [mode, commandPrefix, updateNode, showExCommand]);
+
   const getRadialMenuItemsForNode = useCallback((nodeId: string | null): RadialMenuItem[] => {
     if (!nodeId) return [];
     
@@ -512,6 +605,7 @@ export function OutlineEditor() {
             mode={mode}
             focusedNodeId={appContext.focusedNodeId}
             selectingGotoTarget={appContext.selectingGotoTarget}
+            jumpLabel={jumpLabels[node.id]}
             onFocusNode={appContext.focusNode}
             onSelectAsGotoTarget={handleSelectAsGotoTarget}
             onStartGotoSelection={appContext.startGotoTargetSelection}
@@ -532,6 +626,36 @@ export function OutlineEditor() {
           </div>
         )}
       </div>
+
+      {showExCommand && (
+        <div className="absolute bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 p-2 z-50">
+          <input
+            type="text"
+            value={exCommand}
+            onChange={(e) => setExCommand(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.stopPropagation();
+                if (exCommand === 'jump') {
+                  const focusedId = appContextRef.current.focusedNodeId;
+                  if (focusedId) {
+                    appContext.startGotoTargetSelection(focusedId);
+                  }
+                }
+                setShowExCommand(false);
+                setExCommand('');
+              } else if (e.key === 'Escape') {
+                e.stopPropagation();
+                setShowExCommand(false);
+                setExCommand('');
+              }
+            }}
+            autoFocus
+            className="w-full bg-slate-800 text-slate-200 px-2 py-1 rounded text-sm font-mono border border-slate-600 focus:border-blue-500 outline-none"
+            placeholder="Enter command..."
+          />
+        </div>
+      )}
       
       {radialMenu.state.isOpen && (
         <RadialMenu

@@ -108,3 +108,41 @@
 
 ### Status
 Task 4 fully verified and working correctly. All acceptance criteria met.
+## [2026-02-12] Task 3: Jump Command
+
+### Implementation
+- Added :jump ex-command with command input UI
+- Integrated with existing goto selection system
+- Letter labels (a-z) shown during selection
+- Prevents jumping to self or descendants
+
+### Key Decisions
+- Reused existing startGotoTargetSelection system
+- Command input at bottom of outline panel
+- Letter assignment skips selecting node and descendants
+- Verified with Playwright:
+  - Ex-command activation works
+  - Selection mode activation works
+  - Key press 'a' confirms selection and exits mode
+
+### Status
+✅ Task 3 complete and verified
+
+
+## [2026-02-12] Task 3 QA Complete
+
+### Test Results
+- ✅ `:` shows command input at bottom
+- ✅ `jump` command enters selection mode
+- ✅ Letter labels displayed correctly (a, b, c...)
+- ✅ Pressing letter creates goto link (↳ icon)
+- ✅ Flowchart shows arrow to target node
+- ✅ Escape cancels selection mode
+
+### Evidence
+- Screenshots: jump-command-input.png, jump-labels.png, jump-complete.png
+- All 6 acceptance criteria verified via Playwright automation
+- Tested on K8s Auth Flow document with multiple nodes
+
+### Status
+Task 3 fully verified and working correctly. The :jump command system is fully functional.

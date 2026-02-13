@@ -267,12 +267,12 @@ Scenario: Build passes with new field
 - `src/types.ts:NodeType` - 'goto' type already exists
 
 **Acceptance Criteria**:
-- [ ] `:` in normal mode shows command input at bottom
-- [ ] Typing `jump` and Enter enters selection mode
-- [ ] Nodes show letter labels (a-z or similar)
-- [ ] Pressing letter sets current node to goto with targetId
-- [ ] Flowchart shows arrow to target node
-- [ ] Escape cancels selection mode
+- [x] `:` in normal mode shows command input at bottom
+- [x] Typing `jump` and Enter enters selection mode
+- [x] Nodes show letter labels (a-z or similar)
+- [x] Pressing letter sets current node to goto with targetId
+- [x] Flowchart shows arrow to target node
+- [x] Escape cancels selection mode
 
 **Agent-Executed QA Scenarios**:
 
