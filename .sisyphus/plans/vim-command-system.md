@@ -51,10 +51,10 @@ Enable Vim-power-user speed for logic flow creation by mapping all structural op
 4. Parallel node type with fork/join visualization
 
 ### Definition of Done
-- [ ] All type changes possible via `Ctrl-X {letter}`
-- [ ] `:jump` opens picker, selecting node sets goto target
-- [ ] Lines starting with `//` render as comments (not in flowchart)
-- [ ] Parallel nodes render with fork/join bars in flowchart
+- [x] All type changes possible via `Ctrl-X {letter}`
+- [x] `:jump` opens picker, selecting node sets goto target
+- [x] Lines starting with `//` render as comments (not in flowchart)
+- [x] Parallel nodes render with fork/join bars in flowchart
 
 ### Must Have
 - Keyboard-only workflow (no mouse required for any operation)
