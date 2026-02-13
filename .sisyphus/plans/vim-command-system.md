@@ -214,9 +214,9 @@ Scenario: Ctrl-X d converts process to decision
 - `src/store.tsx:updateNode` - May need toggleComment
 
 **Acceptance Criteria**:
-- [ ] `OutlineNode` type includes `isComment?: boolean`
-- [ ] Store has `toggleComment(id)` function
-- [ ] TypeScript compiles without errors
+- [x] `OutlineNode` type includes `isComment?: boolean`
+- [x] Store has `toggleComment(id)` function
+- [x] TypeScript compiles without errors
 
 **Agent-Executed QA Scenarios**:
 
