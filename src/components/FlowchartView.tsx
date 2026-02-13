@@ -94,6 +94,8 @@ function getNodeStyle(type: NodeType, isSelected: boolean): React.CSSProperties 
         height: 40,
         padding: 0,
       };
+    case 'parallel':
+      return { ...baseStyle, backgroundColor: '#a855f7', borderRadius: '8px' };
     default:
       return baseStyle;
   }
@@ -112,16 +114,22 @@ function convertOutlineToFlow(
   const edges: Edge[] = [];
   const gotoEdges: GotoEdge[] = [];
 
-  function traverse(items: OutlineNode[], parentId: string | null = null, edgeLabel?: string) {
+  function traverse(
+    items: OutlineNode[], 
+    parentId: string | null = null, 
+    edgeLabel?: string,
+    continuationId?: string
+  ) {
     items.forEach((item) => {
       if (item.isComment) return;
       
       const isBranch = item.type === 'branch';
       const isGoto = item.type === 'goto';
+      const isParallel = item.type === 'parallel';
       
       if (isBranch) {
         item.children.forEach((child) => {
-          traverse([child], parentId, item.label || 'Branch');
+          traverse([child], parentId, item.label || 'Branch', continuationId);
         });
         return;
       }
@@ -129,6 +137,89 @@ function convertOutlineToFlow(
       if (isGoto) {
         if (item.targetId && parentId) {
           gotoEdges.push({ sourceParentId: parentId, targetId: item.targetId });
+        }
+        return;
+      }
+      
+      if (isParallel) {
+        const forkId = `fork-${item.id}`;
+        const joinId = `join-${item.id}`;
+        
+        // Fork Node
+        nodes.push({
+          id: forkId,
+          data: { label: '⸛' },
+          position: { x: 0, y: 0 },
+          style: { 
+            width: nodeWidth, 
+            height: 16, 
+            backgroundColor: '#a855f7', 
+            borderRadius: '4px',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '12px',
+          },
+          type: 'default',
+        });
+
+        if (parentId) {
+          edges.push({
+            id: `${parentId}-${forkId}`,
+            source: parentId,
+            target: forkId,
+            label: edgeLabel,
+            style: { stroke: '#64748b', strokeWidth: 2 },
+            labelStyle: { fill: '#94a3b8', fontSize: 11, fontWeight: 500 },
+            labelBgStyle: { fill: '#1e293b', fillOpacity: 0.9 },
+            labelBgPadding: [4, 4] as [number, number],
+            labelBgBorderRadius: 4,
+          });
+        }
+        
+        // Join Node
+        nodes.push({
+          id: joinId,
+          data: { label: '⸛' },
+          position: { x: 0, y: 0 },
+          style: { 
+            width: nodeWidth, 
+            height: 16, 
+            backgroundColor: '#a855f7', 
+            borderRadius: '4px',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '12px',
+          },
+          type: 'default',
+        });
+
+        // Traverse children to connect Fork -> Child ... -> Join
+        if (item.children.length > 0) {
+          item.children.forEach((child) => {
+            traverse([child], forkId, undefined, joinId);
+          });
+        } else {
+          // Empty parallel, connect fork to join
+          edges.push({
+            id: `${forkId}-${joinId}`,
+            source: forkId,
+            target: joinId,
+            style: { stroke: '#64748b', strokeWidth: 2 },
+          });
+        }
+        
+        // Connect Join to Continuation
+        if (continuationId) {
+          edges.push({
+            id: `${joinId}-${continuationId}`,
+            source: joinId,
+            target: continuationId,
+            style: { stroke: '#64748b', strokeWidth: 2 },
+          });
         }
         return;
       }
@@ -167,7 +258,14 @@ function convertOutlineToFlow(
 
       if (item.children.length > 0) {
         item.children.forEach((child) => {
-          traverse([child], item.id);
+          traverse([child], item.id, undefined, continuationId);
+        });
+      } else if (continuationId) {
+        edges.push({
+          id: `${item.id}-${continuationId}`,
+          source: item.id,
+          target: continuationId,
+          style: { stroke: '#64748b', strokeWidth: 2 },
         });
       }
     });

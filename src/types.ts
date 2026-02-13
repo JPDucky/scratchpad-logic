@@ -1,4 +1,4 @@
-export type NodeType = 'start' | 'end' | 'process' | 'decision' | 'merge' | 'branch' | 'goto';
+export type NodeType = 'start' | 'end' | 'process' | 'decision' | 'merge' | 'branch' | 'goto' | 'parallel';
 
 export interface OutlineNode {
   id: string;
@@ -27,4 +27,5 @@ export const NODE_TYPE_CONFIG: Record<NodeType, { label: string; color: string; 
   merge: { label: 'Merge', color: 'bg-gray-500', icon: '○' },
   branch: { label: 'Branch', color: 'bg-yellow-500', icon: '↳' },
   goto: { label: 'Go To', color: 'bg-cyan-500', icon: '↩' },
+  parallel: { label: 'Parallel', color: 'bg-purple-500', icon: '&' },
 };

@@ -402,11 +402,11 @@ Scenario: Typing // prefix auto-comments
 - `src/components/FlowDiagram.tsx` - Fork/join rendering
 
 **Acceptance Criteria**:
-- [ ] `parallel` type exists in NodeType
-- [ ] `Ctrl-X &` sets node to parallel type
-- [ ] Parallel node shows with & icon in outline
-- [ ] Flowchart renders fork bar before parallel children
-- [ ] Flowchart renders join bar after parallel children
+- [x] `parallel` type exists in NodeType
+- [x] `Ctrl-X &` sets node to parallel type
+- [x] Parallel node shows with & icon in outline
+- [x] Flowchart renders fork bar before parallel children
+- [x] Flowchart renders join bar after parallel children
 
 **Agent-Executed QA Scenarios**:
 

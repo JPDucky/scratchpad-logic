@@ -446,6 +446,10 @@ export function OutlineEditor() {
             updateNode(focusedId, { type: 'goto' });
             setCommandPrefix(null);
             break;
+          case '&':
+            updateNode(focusedId, { type: 'parallel' });
+            setCommandPrefix(null);
+            break;
           case '/':
             toggleComment(focusedId);
             setCommandPrefix(null);
@@ -618,6 +622,7 @@ export function OutlineEditor() {
         <p className="text-slate-500 text-xs">
           <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">i</kbd> edit •{' '}
           <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">j/k</kbd> navigate •{' '}
+          <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">Ctrl-X &</kbd> parallel •{' '}
           <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">Ctrl-X</kbd> type
         </p>
         {commandPrefix === 'ctrl-x' && (
