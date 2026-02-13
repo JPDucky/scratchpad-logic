@@ -110,6 +110,7 @@ function OutlineNodeItem({
     addSibling,
     deleteNode,
     getAdjacentNodeId,
+    toggleComment,
   } = useOutline();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -235,14 +236,26 @@ function OutlineNodeItem({
             ref={inputRef}
             type="text"
             value={node.label}
-            onChange={(e) => updateNode(node.id, { label: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              updateNode(node.id, { label: value });
+              if (value.startsWith('// ') && !node.isComment) {
+                toggleComment(node.id);
+              }
+            }}
             onFocus={() => onFocusNode(node.id)}
             onKeyDown={handleKeyDown}
             placeholder="Enter text..."
-            className="flex-1 bg-transparent border-none outline-none text-slate-200 placeholder-slate-500 text-sm py-0.5"
+            className={`flex-1 bg-transparent border-none outline-none ${node.isComment ? 'text-slate-500 italic opacity-70' : 'text-slate-200'} placeholder-slate-500 text-sm py-0.5`}
           />
         ) : (
-          <span className={`flex-1 text-sm py-0.5 ${node.label ? 'text-slate-200' : 'text-slate-500 italic'}`}>
+          <span className={`flex-1 text-sm py-0.5 ${
+            node.isComment 
+              ? 'text-slate-500 italic opacity-70' 
+              : node.label 
+                ? 'text-slate-200' 
+                : 'text-slate-500 italic'
+          }`}>
             {node.label || 'Enter text...'}
           </span>
         )}
@@ -267,7 +280,7 @@ function OutlineNodeItem({
 }
 
 export function OutlineEditor() {
-  const { nodes, findNodeById, updateNode, addSibling, addChild, deleteNode } = useOutline();
+  const { nodes, findNodeById, updateNode, addSibling, addChild, deleteNode, toggleComment } = useOutline();
   const { mode, appContext } = useKeybindings();
   const [commandPrefix, setCommandPrefix] = useState<'ctrl-x' | null>(null);
   const commandTimeoutRef = useRef<number | null>(null);
@@ -338,6 +351,10 @@ export function OutlineEditor() {
             break;
           case 'g':
             updateNode(focusedId, { type: 'goto' });
+            setCommandPrefix(null);
+            break;
+          case '/':
+            toggleComment(focusedId);
             setCommandPrefix(null);
             break;
           case 'Escape':

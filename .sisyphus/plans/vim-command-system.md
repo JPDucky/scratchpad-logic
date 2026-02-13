@@ -333,11 +333,11 @@ Scenario: Jump to self is prevented
 - `src/types.ts:OutlineNode.isComment` - From Task 2
 
 **Acceptance Criteria**:
-- [ ] `Ctrl-X /` toggles isComment on focused node
-- [ ] Comment nodes show gray/muted in outline
-- [ ] Comment nodes NOT rendered in flowchart
-- [ ] Typing `// note` auto-marks node as comment
-- [ ] Comments persist across reload
+- [x] `Ctrl-X /` toggles isComment on focused node
+- [x] Comment nodes show gray/muted in outline
+- [x] Comment nodes NOT rendered in flowchart
+- [x] Typing `// note` auto-marks node as comment
+- [x] Comments persist across reload
 
 **Agent-Executed QA Scenarios**:
 

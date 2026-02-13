@@ -66,3 +66,45 @@
 
 ### Status
 ✅ Task 1 fully verified and working correctly in browser
+
+## [2026-02-12] Task 4: Comment Rendering
+
+### Implementation
+- Added `Ctrl-X /` command to toggle comment status in `OutlineEditor.tsx`
+- Applied muted styling (gray, italic, opacity-70) to comment nodes in `OutlineNodeItem.tsx`
+- Filtered comment nodes from flowchart rendering in `FlowchartView.tsx`
+- Auto-detect `// ` prefix to mark nodes as comments in `OutlineNodeItem.tsx`
+
+### Key Decisions
+- Used Tailwind classes: `text-slate-500 italic opacity-70` for comments
+- Filtered at flowchart conversion level to exclude comments and their subtrees
+- Auto-detection triggers on label change (input `onChange`)
+- Toggle command uses existing `toggleComment` from store
+
+### Status
+✅ Task 4 complete and verified via build
+
+## [2026-02-12] Task 4 QA Complete
+
+### Test Results
+- ✅ Ctrl-X / toggles comment status (verified with screenshots)
+- ✅ Muted styling applied correctly (text-slate-500 italic opacity-70)
+- ✅ Comments excluded from flowchart (verified in FlowchartView.tsx line 117)
+- ✅ // prefix auto-detection works (verified in OutlineEditor.tsx line 242-244)
+- ✅ Comments persist after reload (verified with browser reload test)
+
+### Evidence
+- Screenshots: comment-toggle-on.png, comment-toggle-off.png
+- Code verification: OutlineEditor.tsx lines 242-244, 249, 252-258, 356-359
+- Code verification: FlowchartView.tsx line 117 (comment filter)
+- Browser testing: Ctrl-X / command execution, styling verification, persistence check
+
+### Implementation Details Verified
+1. **Toggle Command**: Ctrl-X / correctly calls toggleComment() function
+2. **Auto-Detection**: Typing "// " prefix automatically marks node as comment
+3. **Styling**: Comment nodes display with text-slate-500 italic opacity-70 classes
+4. **Flowchart Filtering**: Comments are excluded from flowchart rendering (line 117)
+5. **Persistence**: Comment state persists across page reload via localStorage
+
+### Status
+Task 4 fully verified and working correctly. All acceptance criteria met.

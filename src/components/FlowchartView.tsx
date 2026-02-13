@@ -114,6 +114,8 @@ function convertOutlineToFlow(
 
   function traverse(items: OutlineNode[], parentId: string | null = null, edgeLabel?: string) {
     items.forEach((item) => {
+      if (item.isComment) return;
+      
       const isBranch = item.type === 'branch';
       const isGoto = item.type === 'goto';
       
