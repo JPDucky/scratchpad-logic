@@ -459,9 +459,9 @@ npm run dev      # Expected: app runs, test manually
 ```
 
 ### Final Checklist
-- [ ] All type changes via `Ctrl-X {letter}` work
-- [ ] `:jump` command works with visual selection
-- [ ] `//` comments excluded from flowchart
-- [ ] Parallel nodes show fork/join in flowchart
-- [ ] No regression in existing keybindings (j/k/o/dd/yy/p)
-- [ ] Radial menu still works (untouched)
+- [x] All type changes via `Ctrl-X {letter}` work
+- [x] `:jump` command works with visual selection
+- [x] `//` comments excluded from flowchart
+- [x] Parallel nodes show fork/join in flowchart
+- [x] No regression in existing keybindings (j/k/o/dd/yy/p)
+- [x] Radial menu still works (untouched)
