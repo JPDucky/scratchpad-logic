@@ -185,7 +185,7 @@ function OutlineNodeItem({
   ].filter(Boolean).join(' ');
 
   return (
-    <div className={depth > 0 ? "ml-3 pl-3 border-l border-slate-700/50" : ""}>
+    <div className={depth > 0 ? "ml-1 pl-1 border-l border-slate-700/50" : ""}>
       <div
         className={rowClasses}
         onClick={handleRowClick}
