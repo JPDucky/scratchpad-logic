@@ -15,7 +15,6 @@ export const vimKeymap: Keymap = {
     // OUTLINE-NORMAL MODE
     // ============================================
     { key: 'Esc', action: 'mode.normal', mode: 'outline-normal', description: 'Back to normal mode' },
-    { key: 'Ctrl+c', action: 'mode.normal', mode: 'outline-normal', description: 'Back to normal mode' },
     
     // Navigation
     { key: 'j', action: 'cursor.down', mode: 'outline-normal', description: 'Move down' },
@@ -35,27 +34,20 @@ export const vimKeymap: Keymap = {
     { key: 'p', action: 'node.paste', mode: 'outline-normal', description: 'Paste node' },
     
     // Hierarchy
-    { key: 'Tab', action: 'node.indent', mode: 'outline-normal', description: 'Indent node' },
-    { key: 'Shift+Tab', action: 'node.outdent', mode: 'outline-normal', description: 'Outdent node' },
     { key: '> >', action: 'node.indent', mode: 'outline-normal', description: 'Indent node' },
     { key: '< <', action: 'node.outdent', mode: 'outline-normal', description: 'Outdent node' },
     { key: 'Shift+j', action: 'node.moveDown', mode: 'outline-normal', description: 'Move node down' },
     { key: 'Shift+k', action: 'node.moveUp', mode: 'outline-normal', description: 'Move node up' },
     
-    // Node type (leader)
-    { key: 'Space t', action: 'node.changeType', mode: 'outline-normal', description: 'Change node type' },
-    
     // ============================================
     // OUTLINE-INSERT MODE
     // ============================================
     { key: 'Esc', action: 'mode.outline', mode: 'outline-insert', description: 'Back to outline-normal' },
-    { key: 'Ctrl+c', action: 'mode.outline', mode: 'outline-insert', description: 'Back to outline-normal' },
     
     // ============================================
     // VISUAL-NORMAL MODE (flowchart)
     // ============================================
     { key: 'Esc', action: 'mode.normal', mode: 'visual-normal', description: 'Back to normal mode' },
-    { key: 'Ctrl+c', action: 'mode.normal', mode: 'visual-normal', description: 'Back to normal mode' },
     
     // Navigation (visual/spatial)
     { key: 'j', action: 'cursor.down', mode: 'visual-normal', description: 'Move cursor down visually' },
@@ -70,23 +62,15 @@ export const vimKeymap: Keymap = {
     { key: 'o', action: 'node.addBelow', mode: 'visual-normal', description: 'Add node below' },
     { key: 'Shift+o', action: 'node.addAbove', mode: 'visual-normal', description: 'Add node above' },
     
-    // Hierarchy
-    { key: 'Tab', action: 'node.indent', mode: 'visual-normal', description: 'Indent node' },
-    { key: 'Shift+Tab', action: 'node.outdent', mode: 'visual-normal', description: 'Outdent node' },
-    
     // Delete/yank/paste
     { key: 'd d', action: 'node.delete', mode: 'visual-normal', description: 'Delete node' },
     { key: 'y y', action: 'node.yank', mode: 'visual-normal', description: 'Yank node' },
     { key: 'p', action: 'node.paste', mode: 'visual-normal', description: 'Paste node' },
     
-    // Node type (leader)
-    { key: 'Space t', action: 'node.changeType', mode: 'visual-normal', description: 'Change node type' },
-    
     // ============================================
     // VISUAL-EDIT MODE (editing node text)
     // ============================================
     { key: 'Esc', action: 'edit.exit', mode: 'visual-edit', description: 'Exit text edit' },
-    { key: 'Ctrl+c', action: 'edit.exit', mode: 'visual-edit', description: 'Exit text edit' },
     { key: 'Enter', action: 'edit.exit', mode: 'visual-edit', description: 'Confirm and exit' },
     // Shift+Enter for newline is handled specially (not an action)
     
@@ -94,7 +78,6 @@ export const vimKeymap: Keymap = {
     // VISUAL-MOVE MODE (moving node)
     // ============================================
     { key: 'Esc', action: 'move.cancel', mode: 'visual-move', description: 'Cancel move' },
-    { key: 'Ctrl+c', action: 'move.cancel', mode: 'visual-move', description: 'Cancel move' },
     { key: 'p', action: 'move.confirm', mode: 'visual-move', description: 'Place node here' },
     { key: 'Enter', action: 'move.confirm', mode: 'visual-move', description: 'Place node here' },
     

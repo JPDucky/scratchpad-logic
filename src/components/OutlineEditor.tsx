@@ -287,9 +287,9 @@ function OutlineNodeItem({
 }
 
 export function OutlineEditor() {
-  const { nodes, findNodeById, updateNode, addSibling, addChild, deleteNode, toggleComment } = useOutline();
+  const { nodes, findNodeById, updateNode, addSibling, addChild, deleteNode, toggleComment, indentNode, outdentNode } = useOutline();
   const { mode, appContext } = useKeybindings();
-  const [commandPrefix, setCommandPrefix] = useState<'ctrl-x' | null>(null);
+  const [commandPrefix, setCommandPrefix] = useState<'t' | null>(null);
   const [exCommand, setExCommand] = useState<string>('');
   const [showExCommand, setShowExCommand] = useState<boolean>(false);
   const [jumpLabels, setJumpLabels] = useState<Record<string, string>>({});
@@ -379,6 +379,31 @@ export function OutlineEditor() {
       // Only active in outline-normal mode
       if (mode !== 'outline-normal') return;
 
+      // Handle Tab/Shift+Tab for indent/outdent (prevent browser focus)
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        e.stopPropagation();
+        const focusedId = appContextRef.current.focusedNodeId;
+        if (!focusedId) return;
+        if (e.shiftKey) {
+          outdentNode(focusedId);
+        } else {
+          indentNode(focusedId);
+        }
+        return;
+      }
+
+      // Handle / for toggle comment
+      if (e.key === '/' && !commandPrefix) {
+        e.preventDefault();
+        e.stopPropagation();
+        const focusedId = appContextRef.current.focusedNodeId;
+        if (focusedId) {
+          toggleComment(focusedId);
+        }
+        return;
+      }
+
       // Start Ex-Command
       if (!commandPrefix && !showExCommand && e.key === ':') {
         e.preventDefault();
@@ -387,11 +412,11 @@ export function OutlineEditor() {
         return;
       }
 
-      // Check for Ctrl-X prefix activation
-      if (!commandPrefix && e.ctrlKey && e.key === 'x') {
+      // Check for 't' prefix activation
+      if (!commandPrefix && e.key === 't') {
         e.preventDefault();
         e.stopPropagation();
-        setCommandPrefix('ctrl-x');
+        setCommandPrefix('t');
         
         // Clear existing timeout
         if (commandTimeoutRef.current) clearTimeout(commandTimeoutRef.current);
@@ -404,7 +429,7 @@ export function OutlineEditor() {
       }
 
       // Handle commands when prefix is active
-      if (commandPrefix === 'ctrl-x') {
+      if (commandPrefix === 't') {
         e.preventDefault();
         e.stopPropagation();
         
@@ -631,12 +656,13 @@ export function OutlineEditor() {
           <p className="text-slate-500 text-xs">
             <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">i</kbd> edit •{' '}
             <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">j/k</kbd> navigate •{' '}
-            <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">Ctrl-X &</kbd> parallel •{' '}
-            <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">Ctrl-X</kbd> type
+            <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">Tab</kbd> indent •{' '}
+            <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">t</kbd> type •{' '}
+            <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">/</kbd> comment
           </p>
-          {commandPrefix === 'ctrl-x' && (
+          {commandPrefix === 't' && (
             <div className="px-2 py-0.5 bg-cyan-900/50 border border-cyan-500/50 rounded text-cyan-400 text-xs font-mono font-bold animate-pulse">
-              -- CTRL-X --
+              -- TYPE --
             </div>
           )}
         </div>
