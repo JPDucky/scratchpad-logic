@@ -92,6 +92,7 @@ interface OutlineNodeItemProps {
   onStartGotoSelection: (gotoNodeId: string) => void;
   findNodeById: (id: string) => OutlineNode | null;
   radialMenuHandlers: RadialMenuHandlers;
+  appContext: ReturnType<typeof useKeybindings>['appContext'];
 }
 
 function OutlineNodeItem({ 
@@ -106,6 +107,7 @@ function OutlineNodeItem({
   onStartGotoSelection,
   findNodeById,
   radialMenuHandlers,
+  appContext,
 }: OutlineNodeItemProps) {
   const {
     updateNode,
@@ -117,6 +119,7 @@ function OutlineNodeItem({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [showTypeSelector, setShowTypeSelector] = useState(false);
+  const [lastKeyPress, setLastKeyPress] = useState<{key: string, time: number} | null>(null);
   const config = NODE_TYPE_CONFIG[node.type];
   
   const isFocused = focusedNodeId === node.id;
@@ -134,6 +137,22 @@ function OutlineNodeItem({
   }, [isFocused, isInsertMode]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === 'j' || e.key === 'k') && lastKeyPress) {
+      const now = Date.now();
+      if (lastKeyPress.key === e.key && (now - lastKeyPress.time) < 300) {
+        e.preventDefault();
+        const input = e.currentTarget;
+        const value = input.value;
+        const newValue = value.slice(0, -1);
+        updateNode(node.id, { label: newValue });
+        appContext.setMode('outline-normal');
+        setLastKeyPress(null);
+        return;
+      }
+    }
+    
+    setLastKeyPress({ key: e.key, time: Date.now() });
+    
     if (e.key === 'Enter') {
       e.preventDefault();
       const newId = addSibling(node.id);
@@ -151,6 +170,19 @@ function OutlineNodeItem({
       e.preventDefault();
       const nextId = getAdjacentNodeId(node.id, 'down');
       if (nextId) onFocusNode(nextId);
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      const input = e.currentTarget;
+      const start = input.selectionStart || 0;
+      const end = input.selectionEnd || 0;
+      const value = input.value;
+      const newValue = value.substring(0, start) + '\t' + value.substring(end);
+      updateNode(node.id, { label: newValue });
+      setTimeout(() => {
+        if (input) {
+          input.selectionStart = input.selectionEnd = start + 1;
+        }
+      }, 0);
     }
   };
 
@@ -280,6 +312,7 @@ function OutlineNodeItem({
           onStartGotoSelection={onStartGotoSelection}
           findNodeById={findNodeById}
           radialMenuHandlers={radialMenuHandlers}
+          appContext={appContext}
         />
       ))}
     </div>
@@ -645,6 +678,7 @@ export function OutlineEditor() {
               onStartGotoSelection={appContext.startGotoTargetSelection}
               findNodeById={findNodeById}
               radialMenuHandlers={radialMenu.handlers}
+              appContext={appContext}
             />
           ))}
         </div>
