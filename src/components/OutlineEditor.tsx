@@ -115,6 +115,8 @@ function OutlineNodeItem({
     deleteNode,
     getAdjacentNodeId,
     toggleComment,
+    indentNode,
+    outdentNode,
   } = useOutline();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -172,17 +174,11 @@ function OutlineNodeItem({
       if (nextId) onFocusNode(nextId);
     } else if (e.key === 'Tab') {
       e.preventDefault();
-      const input = e.currentTarget;
-      const start = input.selectionStart || 0;
-      const end = input.selectionEnd || 0;
-      const value = input.value;
-      const newValue = value.substring(0, start) + '\t' + value.substring(end);
-      updateNode(node.id, { label: newValue });
-      setTimeout(() => {
-        if (input) {
-          input.selectionStart = input.selectionEnd = start + 1;
-        }
-      }, 0);
+      if (e.shiftKey) {
+        outdentNode(node.id);
+      } else {
+        indentNode(node.id);
+      }
     }
   };
 

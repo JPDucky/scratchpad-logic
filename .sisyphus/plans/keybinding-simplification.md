@@ -55,12 +55,12 @@ Simplify keybindings by removing Ctrl modifiers and fixing Tab behavior.
 - Modified `src/components/OutlineEditor.tsx`
 
 ### Definition of Done
-- [ ] Tab indents focused node (no browser focus switch)
-- [ ] Shift+Tab outdents focused node
-- [ ] `t` prefix works for type changes
-- [ ] `/` toggles comment directly
-- [ ] No Ctrl-based bindings remain
-- [ ] Build passes
+- [x] Tab indents focused node (no browser focus switch)
+- [x] Shift+Tab outdents focused node
+- [x] `t` prefix works for type changes
+- [x] `/` toggles comment directly
+- [x] No Ctrl-based bindings remain
+- [x] Build passes
 
 ### Must Have
 - Tab/Shift+Tab control indentation
@@ -139,7 +139,7 @@ All scenarios verified via Playwright.
 
 ---
 
-- [ ] 2. Update OutlineEditor.tsx key handling
+- [x] 2. Update OutlineEditor.tsx key handling
 
   **What to do**:
   - Replace `ctrl-x` prefix with `t` prefix
@@ -259,7 +259,7 @@ All scenarios verified via Playwright.
 
 ---
 
-- [ ] 3. Update footer help text
+- [x] 3. Update footer help text
 
   **What to do**:
   - Update the keyboard hints in the footer to reflect new bindings
@@ -323,13 +323,13 @@ bun run build  # Expected: exits 0, no errors
 ```
 
 ### Final Checklist
-- [ ] Tab indents focused node
-- [ ] Shift+Tab outdents focused node
-- [ ] `t` followed by type key changes node type
-- [ ] `/` toggles comment
-- [ ] No Ctrl-based keybindings
-- [ ] Footer help text updated
-- [ ] Build passes
+- [x] Tab indents focused node
+- [x] Shift+Tab outdents focused node
+- [x] `t` followed by type key changes node type
+- [x] `/` toggles comment
+- [x] No Ctrl-based keybindings
+- [x] Footer help text updated
+- [x] Build passes
 
 ### Agent-Executed QA Scenarios
 
