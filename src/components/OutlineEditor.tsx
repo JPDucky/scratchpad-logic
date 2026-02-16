@@ -20,6 +20,10 @@ function NodeTypeSelector({
   const allTypes = Object.entries(NODE_TYPE_CONFIG) as [NodeType, typeof NODE_TYPE_CONFIG[NodeType]][];
   const types = allTypes.filter(([type]) => type !== 'branch');
   const menuRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(() => {
+    const index = types.findIndex(([type]) => type === currentType);
+    return Math.max(index, 0);
+  });
   
   if (isBranch) return null;
 
@@ -29,6 +33,31 @@ function NodeTypeSelector({
         e.preventDefault();
         e.stopPropagation();
         onClose();
+        return;
+      }
+
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveIndex((index) => (index + 1) % types.length);
+        return;
+      }
+
+      if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveIndex((index) => (index - 1 + types.length) % types.length);
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        const [type] = types[activeIndex] ?? [];
+        if (type) {
+          onSelect(type);
+          onClose();
+        }
       }
     };
 
@@ -45,14 +74,14 @@ function NodeTypeSelector({
       document.removeEventListener('keydown', handleKeyDown, true);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onClose]);
+  }, [activeIndex, onClose, onSelect, types]);
 
   return (
     <div 
       ref={menuRef}
       className="absolute left-0 top-6 z-50 bg-slate-800 border border-slate-600 rounded-lg shadow-xl py-1 min-w-32"
     >
-      {types.map(([type, config]) => (
+      {types.map(([type, config], index) => (
         <button
           key={type}
           onClick={() => {
@@ -60,7 +89,7 @@ function NodeTypeSelector({
             onClose();
           }}
           className={`w-full px-3 py-1.5 text-left text-sm flex items-center gap-2 hover:bg-slate-700 ${
-            type === currentType ? 'bg-slate-700' : ''
+            index === activeIndex ? 'bg-slate-700' : ''
           }`}
         >
           <span className={`w-4 h-4 rounded-sm ${config.color} flex items-center justify-center text-xs text-white`}>
@@ -93,6 +122,9 @@ interface OutlineNodeItemProps {
   findNodeById: (id: string) => OutlineNode | null;
   radialMenuHandlers: RadialMenuHandlers;
   appContext: ReturnType<typeof useKeybindings>['appContext'];
+  typeMenuTargetId: string | null;
+  onToggleTypeMenu: (nodeId: string) => void;
+  onCloseTypeMenu: () => void;
 }
 
 function OutlineNodeItem({ 
@@ -108,6 +140,9 @@ function OutlineNodeItem({
   findNodeById,
   radialMenuHandlers,
   appContext,
+  typeMenuTargetId,
+  onToggleTypeMenu,
+  onCloseTypeMenu,
 }: OutlineNodeItemProps) {
   const {
     updateNode,
@@ -120,9 +155,9 @@ function OutlineNodeItem({
   } = useOutline();
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [lastKeyPress, setLastKeyPress] = useState<{key: string, time: number} | null>(null);
   const config = NODE_TYPE_CONFIG[node.type];
+  const isTypeMenuOpen = typeMenuTargetId === node.id;
   
   const isFocused = focusedNodeId === node.id;
   const isInsertMode = mode === 'outline-insert';
@@ -231,18 +266,18 @@ function OutlineNodeItem({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (!isBranch) setShowTypeSelector(!showTypeSelector);
+              if (!isBranch) onToggleTypeMenu(node.id);
             }}
             className={`w-5 h-5 rounded ${config.color} flex items-center justify-center text-xs text-white ${isBranch ? 'opacity-60 cursor-not-allowed' : 'hover:ring-2 hover:ring-white/30'} transition-all`}
             title={isBranch ? 'Branch (locked to decision)' : `Type: ${config.label}`}
           >
             {config.icon}
           </button>
-          {showTypeSelector && !isBranch && (
+          {isTypeMenuOpen && !isBranch && (
             <NodeTypeSelector
               currentType={node.type}
               onSelect={(type) => updateNode(node.id, { type })}
-              onClose={() => setShowTypeSelector(false)}
+              onClose={onCloseTypeMenu}
               isBranch={isBranch}
             />
           )}
@@ -309,6 +344,9 @@ function OutlineNodeItem({
           findNodeById={findNodeById}
           radialMenuHandlers={radialMenuHandlers}
           appContext={appContext}
+          typeMenuTargetId={typeMenuTargetId}
+          onToggleTypeMenu={onToggleTypeMenu}
+          onCloseTypeMenu={onCloseTypeMenu}
         />
       ))}
     </div>
@@ -318,12 +356,17 @@ function OutlineNodeItem({
 export function OutlineEditor() {
   const { nodes, findNodeById, updateNode, addSibling, addChild, deleteNode, toggleComment, indentNode, outdentNode } = useOutline();
   const { mode, appContext } = useKeybindings();
-  const [commandPrefix, setCommandPrefix] = useState<'t' | null>(null);
+  const [typeMenuTargetId, setTypeMenuTargetId] = useState<string | null>(null);
   const [exCommand, setExCommand] = useState<string>('');
   const [showExCommand, setShowExCommand] = useState<boolean>(false);
   const [jumpLabels, setJumpLabels] = useState<Record<string, string>>({});
-  const commandTimeoutRef = useRef<number | null>(null);
   const appContextRef = useRef(appContext);
+  const handleToggleTypeMenu = useCallback((nodeId: string) => {
+    setTypeMenuTargetId((current) => (current === nodeId ? null : nodeId));
+  }, []);
+  const handleCloseTypeMenu = useCallback(() => {
+    setTypeMenuTargetId(null);
+  }, []);
 
   // Generate jump labels when selectingGotoTarget becomes active
   useEffect(() => {
@@ -408,6 +451,15 @@ export function OutlineEditor() {
       // Only active in outline-normal mode
       if (mode !== 'outline-normal') return;
 
+      if (typeMenuTargetId) {
+        if (e.key === 'e') {
+          e.preventDefault();
+          e.stopPropagation();
+          setTypeMenuTargetId(null);
+        }
+        return;
+      }
+
       // Handle Tab/Shift+Tab for indent/outdent (prevent browser focus)
       if (e.key === 'Tab') {
         e.preventDefault();
@@ -423,7 +475,7 @@ export function OutlineEditor() {
       }
 
       // Handle / for toggle comment
-      if (e.key === '/' && !commandPrefix) {
+      if (e.key === '/') {
         e.preventDefault();
         e.stopPropagation();
         const focusedId = appContextRef.current.focusedNodeId;
@@ -434,86 +486,23 @@ export function OutlineEditor() {
       }
 
       // Start Ex-Command
-      if (!commandPrefix && !showExCommand && e.key === ':') {
+      if (!showExCommand && e.key === ':') {
         e.preventDefault();
         e.stopPropagation();
         setShowExCommand(true);
         return;
       }
 
-      // Check for 't' prefix activation
-      if (!commandPrefix && e.key === 't') {
+      if (e.key === 'e') {
         e.preventDefault();
         e.stopPropagation();
-        setCommandPrefix('t');
-        
-        // Clear existing timeout
-        if (commandTimeoutRef.current) clearTimeout(commandTimeoutRef.current);
-        
-        // Set new timeout to clear prefix after 3s
-        commandTimeoutRef.current = window.setTimeout(() => {
-          setCommandPrefix(null);
-        }, 3000);
-        return;
-      }
-
-      // Handle commands when prefix is active
-      if (commandPrefix === 't') {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Clear timeout
-        if (commandTimeoutRef.current) {
-          clearTimeout(commandTimeoutRef.current);
-          commandTimeoutRef.current = null;
-        }
-
         const focusedId = appContextRef.current.focusedNodeId;
-        if (!focusedId) {
-          setCommandPrefix(null);
-          return;
+        if (focusedId) {
+          const focusedNode = findNodeById(focusedId);
+          if (focusedNode?.type === 'branch') return;
+          setTypeMenuTargetId((current) => (current === focusedId ? null : focusedId));
         }
-
-        switch (e.key) {
-          case 'p':
-            updateNode(focusedId, { type: 'process' });
-            setCommandPrefix(null);
-            break;
-          case 'd':
-            updateNode(focusedId, { type: 'decision' });
-            setCommandPrefix(null);
-            break;
-          case 'e':
-            updateNode(focusedId, { type: 'end' });
-            setCommandPrefix(null);
-            break;
-          case 's':
-            updateNode(focusedId, { type: 'start' });
-            setCommandPrefix(null);
-            break;
-          case 'm':
-            updateNode(focusedId, { type: 'merge' });
-            setCommandPrefix(null);
-            break;
-          case 'g':
-            updateNode(focusedId, { type: 'goto' });
-            setCommandPrefix(null);
-            break;
-          case '&':
-            updateNode(focusedId, { type: 'parallel' });
-            setCommandPrefix(null);
-            break;
-          case '/':
-            toggleComment(focusedId);
-            setCommandPrefix(null);
-            break;
-          case 'Escape':
-            setCommandPrefix(null);
-            break;
-          default:
-            setCommandPrefix(null);
-            break;
-        }
+        return;
       }
     };
 
@@ -521,9 +510,8 @@ export function OutlineEditor() {
     
     return () => {
       window.removeEventListener('keydown', handleKeyDown, true);
-      if (commandTimeoutRef.current) clearTimeout(commandTimeoutRef.current);
     };
-  }, [mode, commandPrefix, updateNode, showExCommand]);
+  }, [mode, showExCommand, toggleComment]);
 
   const getRadialMenuItemsForNode = useCallback((nodeId: string | null): RadialMenuItem[] => {
     if (!nodeId) return [];
@@ -675,6 +663,9 @@ export function OutlineEditor() {
               findNodeById={findNodeById}
               radialMenuHandlers={radialMenu.handlers}
               appContext={appContext}
+              typeMenuTargetId={typeMenuTargetId}
+              onToggleTypeMenu={handleToggleTypeMenu}
+              onCloseTypeMenu={handleCloseTypeMenu}
             />
           ))}
         </div>
@@ -687,10 +678,10 @@ export function OutlineEditor() {
             <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">i</kbd> edit •{' '}
             <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">j/k</kbd> navigate •{' '}
             <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">Tab</kbd> indent •{' '}
-            <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">t</kbd> type •{' '}
+            <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">e</kbd> type •{' '}
             <kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">/</kbd> comment
           </p>
-          {commandPrefix === 't' && (
+          {typeMenuTargetId && (
             <div className="px-2 py-0.5 bg-cyan-900/50 border border-cyan-500/50 rounded text-cyan-400 text-xs font-mono font-bold animate-pulse">
               -- TYPE --
             </div>
