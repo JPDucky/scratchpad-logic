@@ -192,6 +192,9 @@ function OutlineNodeItem({
     
     if (e.key === 'Enter') {
       e.preventDefault();
+      // Don't create siblings for branch nodes from insert mode
+      // (branches should only be added via radial menu or dedicated command)
+      if (isBranch) return;
       const newId = addSibling(node.id);
       setTimeout(() => onFocusNode(newId), 0);
     } else if (e.key === 'Backspace' && node.label === '') {
