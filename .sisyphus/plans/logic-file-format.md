@@ -931,7 +931,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 8. Resolver — Goto Anchors & Post-processing — `src/logic/resolver.ts`
+- [x] 8. Resolver — Goto Anchors & Post-processing — `src/logic/resolver.ts`
 
   **What to do**:
   - Create `src/logic/resolver.ts` with:
