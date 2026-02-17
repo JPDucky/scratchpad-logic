@@ -16,3 +16,7 @@
 - Added stack-based tree builder with alias resolution and comment skipping.
 - Enforced branch invariants by auto-wrapping decision children into Yes/No branches.
 - Added comprehensive tree tests covering flat lists, nesting, aliases, branch labels, fallback types, and ID format.
+
+## Task 9: Parser integration tests
+- Added parser integration tests covering bracket/keyword/sigil/mixed/inference syntax, anchors, comments, decisions, indentation errors, empty input, and round-trip serialization.
+- Multi-line label continuation in tests uses a joined two-line string to avoid accidental literal prefixes.

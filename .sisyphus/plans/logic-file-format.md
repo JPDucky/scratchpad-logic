@@ -1024,7 +1024,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 9. Parser Entry Point + Integration Tests — `src/logic/parser.ts` + `src/logic/index.ts`
+- [x] 9. Parser Entry Point + Integration Tests — `src/logic/parser.ts` + `src/logic/index.ts`
 
   **What to do**:
   - Create `src/logic/parser.ts` with:
