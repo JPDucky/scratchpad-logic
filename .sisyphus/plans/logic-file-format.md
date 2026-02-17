@@ -820,7 +820,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 7. Tree Builder — `src/logic/tree.ts`
+- [x] 7. Tree Builder — `src/logic/tree.ts`
 
   **What to do**:
   - Create `src/logic/tree.ts` with:

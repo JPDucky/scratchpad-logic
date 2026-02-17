@@ -11,3 +11,8 @@
 - Implemented lexer utilities with indentation validation (tabs rejected, 2-space multiples enforced) and continuation joining.
 - Detection respects family priority and keyword detection only when aliases are known.
 - Parsing returns raw type strings, anchor extraction via @name pattern, and dash-family disambiguation handled.
+
+## Task 7: Tree Builder
+- Added stack-based tree builder with alias resolution and comment skipping.
+- Enforced branch invariants by auto-wrapping decision children into Yes/No branches.
+- Added comprehensive tree tests covering flat lists, nesting, aliases, branch labels, fallback types, and ID format.
