@@ -221,34 +221,125 @@ function DocumentDropdown({
 export function Header() {
   const { activeDocument, saveStatus, renameDocument } = useDocuments();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.logic')) {
+      setError('Invalid file type. Please select a .logic file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      console.log('Importing file:', file.name);
+      console.log('Content:', text);
+      // Stub: handleImport(text, file.name);
+    };
+    reader.onerror = () => {
+      setError('Failed to read file.');
+    };
+    reader.readAsText(file);
+    
+    // Reset input
+    e.target.value = '';
+  };
+
+  const handleExport = () => {
+    console.log('Exporting document...');
+    // Stub: handleExport();
+    const blob = new Blob(['(stub) document content'], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${activeDocument.name}.logic`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <header className="h-12 bg-slate-900 border-b border-slate-800 flex items-center px-4 gap-4">
-      <div className="relative flex items-center gap-2">
-        <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="flex items-center gap-1 text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-slate-800 transition-colors"
-          title="Switch document"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+    <>
+      <header className="h-12 bg-slate-900 border-b border-slate-800 flex items-center px-4 gap-4">
+        <div className="relative flex items-center gap-2">
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="flex items-center gap-1 text-slate-400 hover:text-slate-200 p-1 rounded hover:bg-slate-800 transition-colors"
+            title="Switch document"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-        <DocumentDropdown isOpen={dropdownOpen} onClose={() => setDropdownOpen(false)} />
+          <DocumentDropdown isOpen={dropdownOpen} onClose={() => setDropdownOpen(false)} />
 
-        <DocumentTitle 
-          name={activeDocument.name} 
-          onRename={(name) => renameDocument(activeDocument.id, name)} 
-        />
-      </div>
+          <DocumentTitle 
+            name={activeDocument.name} 
+            onRename={(name) => renameDocument(activeDocument.id, name)} 
+          />
+        </div>
 
-      <div className="flex-1" />
+        <div className="flex-1" />
 
-      <SaveIndicator status={saveStatus} />
-    </header>
+        <div className="flex items-center gap-1">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".logic"
+            className="hidden"
+          />
+          <button
+            onClick={handleImportClick}
+            className="text-xs font-medium text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-800 transition-colors"
+            title="Import .logic file"
+          >
+            Import
+          </button>
+          <button
+            onClick={handleExport}
+            className="text-xs font-medium text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-800 transition-colors"
+            title="Export to .logic file"
+          >
+            Export
+          </button>
+        </div>
+
+        <div className="w-px h-4 bg-slate-800 mx-1" />
+
+        <SaveIndicator status={saveStatus} />
+      </header>
+      {error && (
+        <div className="bg-slate-800 border-b border-slate-700 text-red-400 px-4 py-2 text-xs flex items-center justify-between">
+          <span>{error}</span>
+          <button 
+            onClick={() => setError(null)} 
+            className="text-slate-500 hover:text-slate-300"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+    </>
   );
 }
