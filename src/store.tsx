@@ -667,6 +667,7 @@ interface DocumentStore {
   renameDocument: (id: string, name: string) => void;
   switchDocument: (id: string) => void;
   duplicateDocument: (id: string) => string;
+  importDocument: (nodes: OutlineNode[], name: string) => string;
 }
 
 interface OutlineStore {
@@ -771,6 +772,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       id: generateId(),
       name: flowInfo.name,
       nodes: createSampleFlow(key),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setDocuments(docs => [...docs, newDoc]);
+    setActiveDocumentId(newDoc.id);
+    return newDoc.id;
+  }, []);
+
+  const importDocument = useCallback((nodes: OutlineNode[], name: string): string => {
+    const now = Date.now();
+    const newDoc: Document = {
+      id: generateId(),
+      name,
+      nodes,
       createdAt: now,
       updatedAt: now,
     };
@@ -1127,6 +1142,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         renameDocument,
         switchDocument,
         duplicateDocument,
+        importDocument,
         // Outline store
         nodes,
         focusedId,
@@ -1175,6 +1191,7 @@ export function useDocuments() {
     renameDocument: store.renameDocument,
     switchDocument: store.switchDocument,
     duplicateDocument: store.duplicateDocument,
+    importDocument: store.importDocument,
   };
 }
 

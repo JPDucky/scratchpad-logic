@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useDocuments, SAMPLE_FLOWS } from '../store';
+import { parse, serialize } from '../logic';
 import type { SampleFlowKey } from '../store';
 import type { SaveStatus } from '../types';
 
@@ -219,9 +220,10 @@ function DocumentDropdown({
 }
 
 export function Header() {
-  const { activeDocument, saveStatus, renameDocument } = useDocuments();
+  const { activeDocument, saveStatus, renameDocument, importDocument } = useDocuments();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -230,6 +232,13 @@ export function Header() {
       return () => clearTimeout(timer);
     }
   }, [error]);
+
+  useEffect(() => {
+    if (warning) {
+      const timer = setTimeout(() => setWarning(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [warning]);
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -247,9 +256,24 @@ export function Header() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      console.log('Importing file:', file.name);
-      console.log('Content:', text);
-      // Stub: handleImport(text, file.name);
+      const result = parse(text);
+
+      if (result.errors.length > 0) {
+        setError(`Parse error: ${result.errors[0].message} (line ${result.errors[0].line})`);
+        return;
+      }
+
+      if (result.nodes.length === 0) {
+        setError('File contains no flowchart nodes.');
+        return;
+      }
+
+      const docName = file.name.replace(/\.logic$/, '');
+      importDocument(result.nodes, docName);
+
+      if (result.warnings.length > 0) {
+        setWarning(result.warnings.join(', '));
+      }
     };
     reader.onerror = () => {
       setError('Failed to read file.');
@@ -261,9 +285,8 @@ export function Header() {
   };
 
   const handleExport = () => {
-    console.log('Exporting document...');
-    // Stub: handleExport();
-    const blob = new Blob(['(stub) document content'], { type: 'text/plain' });
+    const text = serialize(activeDocument.nodes);
+    const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -332,6 +355,19 @@ export function Header() {
           <span>{error}</span>
           <button 
             onClick={() => setError(null)} 
+            className="text-slate-500 hover:text-slate-300"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+      {warning && (
+        <div className="bg-slate-800 border-b border-slate-700 text-yellow-400 px-4 py-2 text-xs flex items-center justify-between">
+          <span>{warning}</span>
+          <button 
+            onClick={() => setWarning(null)} 
             className="text-slate-500 hover:text-slate-300"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
