@@ -102,7 +102,7 @@ describe('tree builder', () => {
     expect(result.nodes[0].type).toBe('process');
   });
 
-  it('auto-wraps decision children in yes/no branches', () => {
+  it('does not auto-wrap decision children (validateBranches is separate)', () => {
     const lines: ParsedLine[] = [
       baseLine({ type: 'decision', label: 'Check', indent: 0, lineNumber: 1 }),
       baseLine({ type: 'process', label: 'First', indent: 1, lineNumber: 2 }),
@@ -110,11 +110,19 @@ describe('tree builder', () => {
     ];
 
     const result = buildTree(lines);
+    // buildTree no longer calls validateBranches — children are raw
     expect(result.nodes[0].children).toHaveLength(2);
-    expect(result.nodes[0].children[0].type).toBe('branch');
-    expect(result.nodes[0].children[0].label).toBe('Yes');
-    expect(result.nodes[0].children[0].children).toHaveLength(2);
-    expect(result.nodes[0].children[1].label).toBe('No');
+    expect(result.nodes[0].children[0].type).toBe('process');
+    expect(result.nodes[0].children[0].label).toBe('First');
+    expect(result.nodes[0].children[1].label).toBe('Second');
+
+    // validateBranches wraps them properly
+    const validated = validateBranches(result.nodes);
+    expect(validated[0].children).toHaveLength(2);
+    expect(validated[0].children[0].type).toBe('branch');
+    expect(validated[0].children[0].label).toBe('Yes');
+    expect(validated[0].children[0].children).toHaveLength(2);
+    expect(validated[0].children[1].label).toBe('No');
   });
 
   it('returns empty array for empty input', () => {

@@ -18,11 +18,12 @@ export function parse(text: string): ParseResult {
   // 3. Build tree
   const treeResult = buildTree(parsedLines);
   
-  // 4. Validate branches (already done in buildTree, but call again to be sure)
-  const validatedNodes = validateBranches(treeResult.nodes);
+  // 4. Resolve anchors BEFORE validateBranches (validateBranches inserts
+  //    synthetic branch nodes that desync the parallel walk with parsedLines)
+  const resolveResult = resolveAnchors(treeResult.nodes, parsedLines);
   
-  // 5. Resolve anchors
-  const resolveResult = resolveAnchors(validatedNodes, parsedLines);
+  // 5. Validate branches (auto-wrap decision children in Yes/No branches)
+  const validatedNodes = validateBranches(resolveResult.nodes);
   
   // 6. Collect errors and warnings
   const errors = [
@@ -35,7 +36,7 @@ export function parse(text: string): ParseResult {
   );
   
   return {
-    nodes: resolveResult.nodes,
+    nodes: validatedNodes,
     errors,
     warnings,
   };

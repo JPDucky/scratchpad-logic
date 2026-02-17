@@ -180,4 +180,43 @@ describe('parser integration', () => {
     expect(result.errors).toHaveLength(0);
     expect(simplifyNodes(result.nodes)).toEqual(simplifyNodes(nodes));
   });
+
+  it('resolves anchor on node inside auto-wrapped decision', () => {
+    const input = [
+      '[decision] Check?',
+      '  [process @step] Do something',
+      '[goto] @step',
+    ].join('\n');
+
+    const result = parse(input);
+
+    const gotoNode = result.nodes[1];
+    const decision = result.nodes[0];
+    const yesBranch = decision.children.find(c => c.label === 'Yes');
+    const processNode = yesBranch?.children[0];
+
+    expect(gotoNode.type).toBe('goto');
+    expect(processNode?.type).toBe('process');
+    expect(processNode?.label).toBe('Do something');
+    expect(gotoNode.targetId).toBe(processNode?.id);
+  });
+
+  it('resolves anchor on node after auto-wrapped decision', () => {
+    const input = [
+      '[decision] Check?',
+      '  [process] Step A',
+      '[process @target] Step B',
+      '[goto] @target',
+    ].join('\n');
+
+    const result = parse(input);
+
+    const processB = result.nodes[1];
+    const gotoNode = result.nodes[2];
+
+    expect(processB.type).toBe('process');
+    expect(processB.label).toBe('Step B');
+    expect(gotoNode.type).toBe('goto');
+    expect(gotoNode.targetId).toBe(processB.id);
+  });
 });

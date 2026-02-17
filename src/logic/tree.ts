@@ -83,5 +83,5 @@ export function buildTree(lines: ParsedLine[]): { nodes: OutlineNode[]; errors: 
     stack.push({ node, indent: line.indent });
   }
 
-  return { nodes: validateBranches(nodes), errors };
+  return { nodes, errors };
 }
