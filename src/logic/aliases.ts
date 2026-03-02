@@ -9,7 +9,7 @@ export interface AliasResolution {
 }
 
 /**
- * Complete alias table mapping all 30 aliases to canonical types.
+ * Complete alias table mapping all 32 aliases to canonical types.
  * Supports case-insensitive lookup.
  */
 export const ALIAS_TABLE: Record<string, AliasResolution> = {
